@@ -1,0 +1,203 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * COLOR PALETTE — extracted from art3.jpeg (Ethereal / Surreal palette)
+ *
+ * Midnight Slate     hsl(250, 25%, 12%)  — skin tones / shadows
+ * Celadon Sage       hsl(160, 20%, 65%)  — background canvas
+ * Pale Halo Pink     hsl(340, 50%, 85%)  — halos
+ * Brass Gold         hsl(45, 65%, 55%)   — gears, ornaments
+ * Tiger Orange       hsl(35, 80%, 55%)   — garments
+ */
+
+@layer base {
+  :root {
+    --background: 160 15% 95%;
+    --foreground: 250 25% 15%;
+    --card: 160 10% 92%;
+    --card-foreground: 250 25% 15%;
+    --popover: 160 10% 92%;
+    --popover-foreground: 250 25% 15%;
+    --primary: 250 25% 15%;
+    --primary-foreground: 160 15% 95%;
+    --secondary: 160 15% 85%;
+    --secondary-foreground: 250 25% 15%;
+    --muted: 160 15% 88%;
+    --muted-foreground: 250 15% 40%;
+    --accent: 45 65% 55%;
+    --accent-foreground: 250 25% 15%;
+    --destructive: 35 80% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 160 15% 85%;
+    --input: 160 15% 85%;
+    --ring: 45 65% 55%;
+    --radius: 0.75rem;
+
+    /* Custom ethereal palette */
+    --slate: 250 25% 12%;
+    --slate-light: 250 20% 25%;
+    --sage: 160 20% 65%;
+    --sage-dark: 160 30% 20%;
+    --pink-halo: 340 50% 85%;
+    --brass: 45 65% 55%;
+    --tiger: 35 80% 55%;
+  }
+
+  .dark {
+    --background: 250 25% 8%;
+    --foreground: 160 15% 90%;
+    --card: 250 25% 12%;
+    --card-foreground: 160 15% 90%;
+    --popover: 250 25% 12%;
+    --popover-foreground: 160 15% 90%;
+    --primary: 340 50% 85%;
+    --primary-foreground: 250 25% 8%;
+    --secondary: 250 20% 16%;
+    --secondary-foreground: 160 15% 90%;
+    --muted: 250 20% 16%;
+    --muted-foreground: 160 15% 65%;
+    --accent: 45 65% 55%;
+    --accent-foreground: 250 25% 8%;
+    --destructive: 35 80% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 250 20% 18%;
+    --input: 250 20% 18%;
+    --ring: 340 50% 85%;
+
+    --slate: 250 25% 12%;
+    --slate-light: 250 20% 25%;
+    --sage: 160 20% 65%;
+    --sage-dark: 160 30% 20%;
+    --pink-halo: 340 50% 85%;
+    --brass: 45 65% 55%;
+    --tiger: 35 80% 55%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Outfit', sans-serif;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+  }
+  .dark ::-webkit-scrollbar-track {
+    background: hsl(250, 25%, 8%);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background: hsl(250, 20%, 18%);
+    border-radius: 4px;
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(340, 50%, 85%);
+  }
+}
+
+@layer utilities {
+  .text-brass { color: hsl(var(--brass)); }
+  .text-pink-halo { color: hsl(var(--pink-halo)); }
+  .text-sage { color: hsl(var(--sage)); }
+  .text-tiger { color: hsl(var(--tiger)); }
+  
+  .bg-brass { background-color: hsl(var(--brass)); }
+  .bg-pink-halo { background-color: hsl(var(--pink-halo)); }
+  .bg-sage { background-color: hsl(var(--sage)); }
+
+  /* Gradients */
+  .text-gradient-ethereal {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--pink-halo)) 0%,
+      hsl(var(--sage)) 50%,
+      hsl(var(--brass)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-brass {
+    background: linear-gradient(
+      135deg,
+      hsl(45, 65%, 65%) 0%,
+      hsl(45, 65%, 45%) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glassmorphism */
+  .glass-ethereal {
+    background: hsla(var(--card) / 0.4);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    border: 1px solid hsla(var(--pink-halo) / 0.1);
+  }
+
+  .halo-glow {
+    box-shadow: 0 0 60px hsla(var(--pink-halo) / 0.15);
+  }
+}
+
+/* Animations */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes glow-pulse-ethereal {
+  0%, 100% { box-shadow: 0 0 20px hsla(var(--pink-halo) / 0.2); }
+  50% { box-shadow: 0 0 50px hsla(var(--sage) / 0.3); }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-float-slow { animation: float-slow 8s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 20s linear infinite; }
+.animate-glow-pulse-ethereal { animation: glow-pulse-ethereal 4s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Subtle mist overlay */
+.mist-overlay::before {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.6' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+}
