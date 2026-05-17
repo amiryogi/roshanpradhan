@@ -11,6 +11,9 @@ import { errorHandler, notFound } from './middleware/error.middleware';
 
 const app: Application = express();
 
+// Trust Render / proxy load balancer (required for rate-limit & IP headers)
+app.set('trust proxy', 1);
+
 // Security & parsing
 app.use(helmet());
 app.use(
