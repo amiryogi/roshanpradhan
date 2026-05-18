@@ -40,12 +40,14 @@ export const useLogout = () => {
 
 export const useMe = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const token = useAuthStore((s) => s.token);
+
   return useQuery({
     queryKey: ['me'],
     queryFn: async () => {
       const res = await api.get('/auth/me');
       return res.data.data as User;
     },
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && Boolean(token),
   });
 };

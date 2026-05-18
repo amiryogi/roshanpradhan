@@ -53,13 +53,15 @@ export const Footer = () => (
           </h4>
           <div className="flex gap-3">
             {[
-              { icon: Instagram, href: '#', label: 'Instagram' },
-              { icon: Facebook, href: '#', label: 'Facebook' },
-              { icon: Mail, href: '#', label: 'Email' },
+              { icon: Instagram, href: 'https://www.instagram.com/roshanartist_?igsh=ZzdmM3c3bmtuNzI4', label: 'Instagram' },
+              { icon: Facebook, href: 'https://www.facebook.com/share/16rCv4VrdW/?mibextid=wwXIfr', label: 'Facebook' },
+              { icon: Mail, href: 'https://mail.google.com/mail/?view=cm&fs=1&to=roshanhanger71@gmail.com', label: 'Email' },
             ].map(({ icon: Icon, href, label }) => (
               <a
                 key={label}
                 href={href}
+                target={href.startsWith('http') ? '_blank' : undefined}
+                rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
                 aria-label={label}
                 className="flex items-center justify-center w-10 h-10 rounded-full border border-border/50 text-muted-foreground hover:text-gold hover:border-gold/50 hover:bg-gold/5 transition-all duration-300"
               >

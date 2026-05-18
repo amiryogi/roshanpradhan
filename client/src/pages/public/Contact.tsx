@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Send, Mail, User, MessageSquare, MapPin, Phone } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
+import { absoluteUrl } from '@/lib/seo';
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -20,6 +22,17 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function Contact() {
+  const art3ImageSet =
+    "image-set(url('/art3.avif') type('image/avif'), url('/art3.webp') type('image/webp'), url('/art3.jpeg') type('image/jpeg'))";
+
+  useSEO({
+    title: 'Contact | Roshan Pradhan',
+    description:
+      'Get in touch with Roshan Pradhan for commissions, exhibitions, collaborations, and studio inquiries.',
+    path: '/contact',
+    image: absoluteUrl('/art3.jpeg'),
+  });
+
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
@@ -36,7 +49,10 @@ export default function Contact() {
     <div className="relative pb-24">
       {/* ─── Immersive Page Header ─── */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden border-b border-border/50">
-        <div className="absolute inset-0 bg-[url('/art3.jpeg')] opacity-5 mix-blend-overlay bg-cover bg-center" />
+        <div
+          className="absolute inset-0 opacity-5 mix-blend-overlay bg-cover bg-center"
+          style={{ backgroundImage: art3ImageSet }}
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
         
         {/* Floating ethereal orbs */}

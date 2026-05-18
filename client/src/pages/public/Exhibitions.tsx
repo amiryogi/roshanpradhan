@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { api } from '@/lib/api';
 import { Exhibition } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils';
 import { MapPin, Calendar } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
+import { absoluteUrl } from '@/lib/seo';
+import { getCloudinarySrcSet, getOptimizedImageUrl } from '@/lib/image';
 
 export default function Exhibitions() {
   const { data } = useQuery({
@@ -12,6 +16,40 @@ export default function Exhibitions() {
       const res = await api.get('/exhibitions');
       return res.data.data as Exhibition[];
     },
+  });
+
+  const exhibitionsSchema = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      itemListElement: (data || []).map((ex, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Event',
+          name: ex.title,
+          description: ex.description,
+          startDate: ex.startDate,
+          endDate: ex.endDate,
+          image: ex.coverImage?.url,
+          location: {
+            '@type': 'Place',
+            name: ex.venue,
+            address: ex.location,
+          },
+        },
+      })),
+    }),
+    [data]
+  );
+
+  useSEO({
+    title: 'Exhibitions | Roshan Pradhan',
+    description:
+      'View solo and group exhibitions featuring Roshan Pradhan across Nepal and international art events.',
+    path: '/exhibitions',
+    image: absoluteUrl('/art3.jpeg'),
+    jsonLd: exhibitionsSchema,
   });
 
   return (
@@ -40,7 +78,23 @@ export default function Exhibitions() {
                   <div className="grid md:grid-cols-5 gap-0">
                     {ex.coverImage?.url && (
                       <div className="md:col-span-2 overflow-hidden">
-                        <img src={ex.coverImage.url} alt={ex.title} className="w-full h-full min-h-[200px] object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <img
+                          src={getOptimizedImageUrl(ex.coverImage.url, {
+                            width: 960,
+                            quality: 'auto:good',
+                            crop: 'limit',
+                          })}
+                          srcSet={getCloudinarySrcSet(ex.coverImage.url, [480, 720, 960, 1200], {
+                            quality: 'auto:good',
+                            crop: 'limit',
+                          })}
+                          sizes="(max-width: 768px) 100vw, 40vw"
+                          alt={ex.title}
+                          className="w-full h-full min-h-[200px] object-cover transition-transform duration-700 group-hover:scale-105"
+                          loading="lazy"
+                          decoding="async"
+                          fetchPriority="low"
+                        />
                       </div>
                     )}
                     <div className={`${ex.coverImage?.url ? 'md:col-span-3' : 'md:col-span-5'} p-6 md:p-8`}>

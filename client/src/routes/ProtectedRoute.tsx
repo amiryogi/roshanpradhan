@@ -2,7 +2,10 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 
 export const ProtectedRoute = () => {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
+  const canAccess = useAuthStore(
+    (s) => s.isAuthenticated && Boolean(s.token)
+  );
+
+  if (!canAccess) return <Navigate to="/admin/login" replace />;
   return <Outlet />;
 };

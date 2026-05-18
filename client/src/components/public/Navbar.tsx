@@ -1,7 +1,11 @@
 import { Link, NavLink } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { api } from '@/lib/api';
+import { About, Artwork, Exhibition, PaginatedResponse } from '@/types';
+import { getOptimizedImageUrl } from '@/lib/image';
 
 const links = [
   { to: '/', label: 'Home' },
@@ -14,12 +18,71 @@ const links = [
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const queryClient = useQueryClient();
+  const prefetchedRoutesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const prefetchRoute = useCallback(
+    (route: string) => {
+      if (prefetchedRoutesRef.current.has(route)) return;
+      prefetchedRoutesRef.current.add(route);
+
+      if (route === '/gallery') {
+        void import('@/pages/public/Gallery');
+        void queryClient.prefetchQuery({
+          queryKey: ['artworks', ''],
+          queryFn: async () => {
+            const res = await api.get('/artworks?limit=24');
+            return res.data.data as PaginatedResponse<Artwork>;
+          },
+          staleTime: 1000 * 60 * 5,
+        });
+      }
+
+      if (route === '/about') {
+        void import('@/pages/public/About');
+        void queryClient.fetchQuery({
+          queryKey: ['about'],
+          queryFn: async () => (await api.get('/about')).data.data as About,
+          staleTime: 1000 * 60 * 5,
+        }).then((aboutData) => {
+          const profileUrl = aboutData?.profileImage?.url;
+          if (!profileUrl) return;
+
+          const optimizedProfileUrl = getOptimizedImageUrl(profileUrl, {
+            width: 720,
+            quality: 'auto',
+            crop: 'limit',
+          });
+
+          const preloader = new Image();
+          preloader.decoding = 'async';
+          preloader.src = optimizedProfileUrl;
+        }).catch(() => {
+          prefetchedRoutesRef.current.delete(route);
+        });
+      }
+
+      if (route === '/exhibitions') {
+        void import('@/pages/public/Exhibitions');
+        void queryClient.prefetchQuery({
+          queryKey: ['exhibitions'],
+          queryFn: async () => (await api.get('/exhibitions')).data.data as Exhibition[],
+          staleTime: 1000 * 60 * 5,
+        });
+      }
+
+      if (route === '/contact') {
+        void import('@/pages/public/Contact');
+      }
+    },
+    [queryClient]
+  );
 
   return (
     <header
@@ -45,6 +108,9 @@ export const Navbar = () => {
               key={l.to}
               to={l.to}
               end={l.to === '/'}
+              onMouseEnter={() => prefetchRoute(l.to)}
+              onFocus={() => prefetchRoute(l.to)}
+              onTouchStart={() => prefetchRoute(l.to)}
               className={({ isActive }) =>
                 cn(
                   'relative px-4 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-300',
@@ -89,6 +155,9 @@ export const Navbar = () => {
                 key={l.to}
                 to={l.to}
                 end={l.to === '/'}
+                onMouseEnter={() => prefetchRoute(l.to)}
+                onFocus={() => prefetchRoute(l.to)}
+                onTouchStart={() => prefetchRoute(l.to)}
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(

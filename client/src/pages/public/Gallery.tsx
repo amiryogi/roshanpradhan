@@ -5,9 +5,19 @@ import { Artwork, PaginatedResponse } from '@/types';
 import { ArtworkCard } from '@/components/public/ArtworkCard';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
+import { absoluteUrl } from '@/lib/seo';
 
 export default function Gallery() {
   const [search, setSearch] = useState('');
+
+  useSEO({
+    title: 'Gallery | Roshan Pradhan',
+    description:
+      'Browse the complete art collection of Roshan Pradhan, featuring mythic figurative, spiritual, and contemporary works.',
+    path: '/gallery',
+    image: absoluteUrl('/art3.jpeg'),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ['artworks', search],

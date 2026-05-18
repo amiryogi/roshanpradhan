@@ -52,7 +52,11 @@ export const ImageUploader = ({ images, onChange, multiple = true }: Props) => {
       <div className="grid grid-cols-3 gap-3 mb-3">
         {images.map((img) => (
           <div key={img.publicId} className="relative group aspect-square">
-            <img src={img.url} alt="" className="w-full h-full object-cover rounded-md" />
+            <img
+              src={img.url}
+              alt="Uploaded artwork preview"
+              className="w-full h-full object-cover rounded-md"
+            />
             <button
               type="button"
               onClick={() => handleRemove(img.publicId)}

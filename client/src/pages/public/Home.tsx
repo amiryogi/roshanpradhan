@@ -1,12 +1,52 @@
-import { useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '@/lib/api';
 import { Artwork, PaginatedResponse } from '@/types';
 import { ArtworkCard } from '@/components/public/ArtworkCard';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles, ChevronRight } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
+import { ARTIST_NAME, SOCIAL_PROFILES, absoluteUrl } from '@/lib/seo';
+
+const homeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: ARTIST_NAME,
+  url: absoluteUrl('/'),
+  image: absoluteUrl('/art3.jpeg'),
+  jobTitle: 'Contemporary Nepalese Artist',
+  description:
+    'Award-winning Nepalese artist blending mythology, surrealism, and contemporary visual storytelling.',
+  sameAs: SOCIAL_PROFILES,
+};
 
 export default function Home() {
+  const art3ImageSet =
+    "image-set(url('/art3.avif') type('image/avif'), url('/art3.webp') type('image/webp'), url('/art3.jpeg') type('image/jpeg'))";
+  const queryClient = useQueryClient();
+
+  const prefetchGallery = useCallback(() => {
+    void import('@/pages/public/Gallery');
+    void queryClient.prefetchQuery({
+      queryKey: ['artworks', ''],
+      queryFn: async () => {
+        const res = await api.get('/artworks?limit=24');
+        return res.data.data as PaginatedResponse<Artwork>;
+      },
+      staleTime: 1000 * 60 * 5,
+    });
+  }, [queryClient]);
+
+  useSEO({
+    title: 'Roshan Pradhan | Contemporary Nepalese Art',
+    description:
+      'Explore the curated portfolio of Roshan Pradhan, an award-winning Nepalese artist blending mythology, surrealism, and contemporary vision.',
+    path: '/',
+    image: absoluteUrl('/art3.jpeg'),
+    jsonLd: homeSchema,
+  });
+
   const { data } = useQuery({
     queryKey: ['artworks', 'featured'],
     queryFn: async () => {
@@ -23,7 +63,18 @@ export default function Home() {
         <div className="absolute inset-0 bg-background overflow-hidden pointer-events-none">
           {/* Main Background Art */}
           <div className="absolute inset-0 opacity-[0.15] mix-blend-screen scale-110">
-            <img src="/art3.jpeg" alt="" className="w-full h-full object-cover" />
+            <picture>
+              <source srcSet="/art3.avif" type="image/avif" />
+              <source srcSet="/art3.webp" type="image/webp" />
+              <img
+                src="/art3.jpeg"
+                alt="Mythic surreal artwork by Roshan Pradhan"
+                className="w-full h-full object-cover"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
+              />
+            </picture>
           </div>
 
           {/* Ambient glowing orbs (representing the halos) */}
@@ -57,7 +108,7 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 animate-fade-up delay-200">
               <Button asChild size="lg" className="rounded-full px-8 bg-foreground hover:bg-foreground/90 text-background font-semibold h-14 group">
-                <Link to="/gallery">
+                <Link to="/gallery" onMouseEnter={prefetchGallery} onFocus={prefetchGallery}>
                   Explore Portfolio 
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -87,11 +138,18 @@ export default function Home() {
             
             <div className="relative aspect-[4/5] lg:aspect-square rounded-[2.5rem] overflow-hidden glass-ethereal p-2">
               <div className="w-full h-full rounded-[2rem] overflow-hidden relative group">
-                <img 
-                  src="/art3.jpeg" 
-                  alt="Featured Artwork" 
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                />
+                <picture>
+                  <source srcSet="/art3.avif" type="image/avif" />
+                  <source srcSet="/art3.webp" type="image/webp" />
+                  <img
+                    src="/art3.jpeg"
+                    alt="Featured artwork: The Mechanical Deity by Roshan Pradhan"
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                  />
+                </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate/80 via-slate/20 to-transparent opacity-80" />
                 
                 {/* Overlay Text */}
@@ -121,7 +179,10 @@ export default function Home() {
 
       {/* ─── Statement Banner ─── */}
       <section className="border-y border-border/50 bg-card/30 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/art3.jpeg')] opacity-[0.03] mix-blend-luminosity bg-cover bg-fixed" />
+        <div
+          className="absolute inset-0 opacity-[0.03] mix-blend-luminosity bg-cover bg-fixed"
+          style={{ backgroundImage: art3ImageSet }}
+        />
         <div className="container py-24 relative z-10 text-center max-w-4xl">
           <Sparkles className="w-8 h-8 text-brass mx-auto mb-8 opacity-50" />
           <h2 className="font-serif text-3xl md:text-5xl leading-tight text-foreground/90">
@@ -146,7 +207,7 @@ export default function Home() {
             </h2>
           </div>
           <Button asChild variant="outline" className="rounded-full border-border/50 hover:bg-sage/10 hover:border-sage/30 hover:text-foreground group">
-            <Link to="/gallery">
+            <Link to="/gallery" onMouseEnter={prefetchGallery} onFocus={prefetchGallery}>
               View All Collection 
               <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
@@ -164,7 +225,10 @@ export default function Home() {
 
       {/* ─── Ethereal CTA ─── */}
       <section className="relative py-32 overflow-hidden mx-4 md:mx-12 lg:mx-20 mb-20 rounded-[3rem] glass-ethereal">
-        <div className="absolute inset-0 bg-[url('/art3.jpeg')] opacity-10 bg-cover bg-center mix-blend-overlay" />
+        <div
+          className="absolute inset-0 opacity-10 bg-cover bg-center mix-blend-overlay"
+          style={{ backgroundImage: art3ImageSet }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-slate/90 via-slate/60 to-slate/90" />
         
         <div className="relative container text-center z-10">

@@ -1,12 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { motion, useScroll, useTransform, Variants } from 'framer-motion';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api';
 import { About as AboutType } from '@/types';
 import {
   Award, Briefcase, GraduationCap, Globe, MapPin, Mail,
   Sparkles, Quote, Calendar,
 } from 'lucide-react';
+import { useSEO } from '@/hooks/useSEO';
+import { ARTIST_NAME, SOCIAL_PROFILES, absoluteUrl } from '@/lib/seo';
+import { getCloudinarySrcSet, getOptimizedImageUrl } from '@/lib/image';
 
 // ─── Static bio data from bio.docx ──────────────────────────────────────────
 const ROLES = [
@@ -60,6 +63,18 @@ const GROUP_EXHIBITIONS = [
   { year: '2003', text: '"Nepal–Japan Art Exhibition" — Fukuoka City, Japan' },
 ];
 
+const aboutSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: ARTIST_NAME,
+  url: absoluteUrl('/about'),
+  image: absoluteUrl('/Rupesh.jpeg'),
+  jobTitle: 'Contemporary Nepalese Artist',
+  sameAs: SOCIAL_PROFILES,
+  description:
+    'Biography and career highlights of Roshan Pradhan, a contemporary Nepalese visual artist.',
+};
+
 // ─── Animation variants ──────────────────────────────────────────────────────
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 36 },
@@ -107,14 +122,55 @@ function SectionHeading({
 
 // ─── Main component ──────────────────────────────────────────────────────────
 export default function About() {
+  const art3ImageSet =
+    "image-set(url('/art3.avif') type('image/avif'), url('/art3.webp') type('image/webp'), url('/art3.jpeg') type('image/jpeg'))";
+
   const heroRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '20%']);
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['about'],
     queryFn: async () => (await api.get('/about')).data.data as AboutType,
+  });
+
+  const profileSourceUrl = data?.profileImage?.url;
+  const profileImageUrl = profileSourceUrl
+    ? getOptimizedImageUrl(profileSourceUrl, {
+      width: 720,
+      quality: 'auto',
+      crop: 'limit',
+    })
+    : undefined;
+
+  const profileImageSrcSet = profileSourceUrl
+    ? getCloudinarySrcSet(profileSourceUrl, [320, 480, 640, 720, 900], {
+      quality: 'auto',
+      crop: 'limit',
+    })
+    : undefined;
+
+  const profileImageBlurUrl = profileSourceUrl
+    ? getOptimizedImageUrl(profileSourceUrl, {
+      width: 64,
+      quality: 35,
+      crop: 'limit',
+    })
+    : undefined;
+
+  useEffect(() => {
+    setProfileImageLoaded(false);
+  }, [profileSourceUrl]);
+
+  useSEO({
+    title: 'About Roshan Pradhan | Artist Biography',
+    description:
+      'Learn about Roshan Pradhan, his artistic journey, awards, exhibitions, and contemporary visual practice rooted in mythology and surrealism.',
+    path: '/about',
+    image: absoluteUrl('/Rupesh.jpeg'),
+    jsonLd: aboutSchema,
   });
 
   return (
@@ -127,7 +183,10 @@ export default function About() {
           style={{ y: heroY, opacity: heroOpacity }}
           className="absolute inset-0 pointer-events-none"
         >
-          <div className="absolute inset-0 bg-[url('/art3.jpeg')] opacity-[0.06] bg-cover bg-center" />
+          <div
+            className="absolute inset-0 opacity-[0.06] bg-cover bg-center"
+            style={{ backgroundImage: art3ImageSet }}
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
         </motion.div>
 
@@ -197,14 +256,27 @@ export default function About() {
                 <div className="absolute -inset-3 bg-gradient-to-br from-pink-halo/20 via-transparent to-sage/20 rounded-3xl opacity-40 blur-xl transition-opacity duration-700 group-hover:opacity-80 pointer-events-none" />
 
                 <div className="relative rounded-2xl overflow-hidden glass-ethereal p-[6px]">
-                  {data?.profileImage?.url ? (
-                    <motion.img
-                      src={data.profileImage.url}
-                      alt="Roshan Pradhan"
-                      className="w-full aspect-[4/5] object-cover rounded-xl"
-                      whileHover={{ scale: 1.04 }}
-                      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-                    />
+                  {profileImageUrl ? (
+                    <div className="relative rounded-xl overflow-hidden">
+                      <div
+                        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${profileImageLoaded ? 'opacity-0' : 'opacity-100 blur-lg scale-110'}`}
+                        style={profileImageBlurUrl ? { backgroundImage: `url('${profileImageBlurUrl}')` } : undefined}
+                      />
+                      <motion.img
+                        src={profileImageUrl}
+                        srcSet={profileImageSrcSet}
+                        sizes="(max-width: 1024px) 88vw, 34vw"
+                        alt="Roshan Pradhan"
+                        className={`w-full aspect-[4/5] object-cover rounded-xl transition-opacity duration-500 ${profileImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        loading="eager"
+                        decoding="async"
+                        fetchPriority="high"
+                        onLoad={() => setProfileImageLoaded(true)}
+                        onError={() => setProfileImageLoaded(true)}
+                        whileHover={{ scale: 1.04 }}
+                        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                      />
+                    </div>
                   ) : (
                     <div className="w-full aspect-[4/5] rounded-xl bg-muted animate-pulse" />
                   )}
